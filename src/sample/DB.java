@@ -1,8 +1,9 @@
 package sample;
 
 import java.sql.*;
+import java.util.List;
 
-public class DB {
+public  class DB<T> {
 
     private static final String DB_NAME="staff_directory.db";
     private static final String CONNECTION_STRING="jdbc:sqlite:"+DB_NAME;
@@ -38,7 +39,7 @@ public class DB {
 
 
 
-    private static void open(){
+    private void open(){
         try {
             connection = DriverManager.getConnection(CONNECTION_STRING);
             statement = connection.createStatement();
@@ -48,7 +49,7 @@ public class DB {
         }
     }
 
-    private static void close(){
+    private  void close(){
         try
         {
             if(results != null)
@@ -65,11 +66,12 @@ public class DB {
         }
     }
 
-    public static ResultSet query(String queryString){
+    public  List<T> query(String queryString){
         try {
           open();
-          results = statement.executeQuery(queryString);
-          return results;
+            results=statement.executeQuery(queryString);
+            ResultSetMapper<T> resultSetMapper = new ResultSetMapper<>();
+            return resultSetMapper.mapResultSetToObjectList(results, Staff.class);
         }catch (SQLException e){
             System.out.println(e.getMessage());
             return null;
@@ -79,7 +81,22 @@ public class DB {
         }
     }
 
-    public static boolean run(String queryString){
+    public  T find(String queryString){
+        try {
+          open();
+            results=statement.executeQuery(queryString);
+            ResultSetMapper<T> resultSetMapper = new ResultSetMapper<>();
+            return resultSetMapper.mapResultSetToObject(results, Staff.class);
+        }catch (SQLException e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+        finally {
+            close();
+        }
+    }
+
+    public  boolean run(String queryString){
         try {
             open();
             statement.executeUpdate(queryString);
